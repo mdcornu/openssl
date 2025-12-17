@@ -34,8 +34,8 @@ Table of Contents
  - [Contributing](#contributing)
  - [Legalities](#legalities)
 
-Overview 
-========
+Overview Section
+================
 
 The OpenSSL toolkit includes:
 
