@@ -9,6 +9,15 @@
 
 #include "ml_dsa_local.h"
 #include "ml_dsa_poly.h"
+#include "internal/cryptlib.h"
+
+/* Assembly function declarations for AVX2 implementations */
+#if !defined(OPENSSL_NO_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
+int ml_dsa_ntt_avx2_capable(void);
+void ml_dsa_poly_ntt_avx2(uint32_t *p_coeff, const uint32_t *p_zetas);
+void ml_dsa_poly_ntt_inverse_avx2(uint32_t *p_coeff);
+void ml_dsa_poly_ntt_mult_avx2(const void *a, const void *b, void *out);
+#endif
 
 /*
  * This file has multiple parts required for fast matrix multiplication,
@@ -112,6 +121,13 @@ void ossl_ml_dsa_poly_ntt_mult(const POLY *lhs, const POLY *rhs, POLY *out)
 {
     int i;
 
+#if !defined(OPENSSL_NO_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
+    if (ml_dsa_ntt_avx2_capable()) {
+        ml_dsa_poly_ntt_mult_avx2(&lhs->coeff[0], &rhs->coeff[0], &out->coeff[0]);
+        return;
+    }
+#endif
+
     for (i = 0; i < ML_DSA_NUM_POLY_COEFFICIENTS; i++)
         out->coeff[i] = reduce_montgomery((uint64_t)lhs->coeff[i] * (uint64_t)rhs->coeff[i]);
 }
@@ -131,6 +147,14 @@ void ossl_ml_dsa_poly_ntt(POLY *p)
     int step;
     int offset = ML_DSA_NUM_POLY_COEFFICIENTS;
 
+#if !defined(OPENSSL_NO_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
+    if (ml_dsa_ntt_avx2_capable()) {
+        ml_dsa_poly_ntt_avx2(&p->coeff[0], zetas_montgomery);
+        return;
+    }
+#endif
+
+    /* Fallback implementation */
     /* Step: 1, 2, 4, 8, ..., 128 */
     for (step = 1; step < ML_DSA_NUM_POLY_COEFFICIENTS; step <<= 1) {
         k = 0;
@@ -171,6 +195,14 @@ void ossl_ml_dsa_poly_ntt_inverse(POLY *p)
      */
     static const uint32_t inverse_degree_montgomery = 41978;
 
+#if !defined(OPENSSL_NO_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
+    if (ml_dsa_ntt_avx2_capable()) {
+        ml_dsa_poly_ntt_inverse_avx2(&p->coeff[0]);
+        return;
+    }
+#endif
+
+    /* Fallback implementation */
     for (offset = 1; offset < ML_DSA_NUM_POLY_COEFFICIENTS; offset <<= 1) {
         step >>= 1;
         k = 0;
