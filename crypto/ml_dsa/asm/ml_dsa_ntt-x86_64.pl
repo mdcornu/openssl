@@ -87,6 +87,8 @@ my $avx2_mask = (1<<5);
 $code .= <<___;
 .text
 
+.extern OPENSSL_ia32cap_P
+
 .globl  ml_dsa_ntt_avx2_capable
 .type   ml_dsa_ntt_avx2_capable,\@abi-omnipotent
 .align 32
