@@ -32,6 +32,10 @@ OpenSSL 4.0
 
 ### Changes between 3.6 and 4.0 [xx XXX xxxx]
 
+ * Added AVX2 optimized ML-DSA NTT operations on x86_64.
+
+   *Marcel Cornu and Tomasz Kantecki*
+
  * Added support for [RFC8998], signature algorithm `sm2sig_sm3`, key exchange
    group `curveSM2`, and [tls-hybrid-sm2-mlkem] post-quantum group
    `curveSM2MLKEM768`.
