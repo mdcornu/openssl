@@ -9,7 +9,7 @@
 
 #include "ml_dsa_local.h"
 #include "ml_dsa_poly.h"
-#include "internal/thread_once.h"
+#include <openssl/crypto.h>
 
 /* Assembly function declarations for AVX2 implementations */
 #if !defined(OPENSSL_NO_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
@@ -223,21 +223,21 @@ static void poly_ntt_inverse_avx2_wrapper(POLY *p)
 /*
  * One-time initialization of NTT function pointers.
  * Checks CPU capabilities once and selects the appropriate implementation.
+ * Uses CRYPTO_THREAD_run_once directly to work in both FIPS and non-FIPS builds.
  */
-DEFINE_RUN_ONCE_STATIC(ml_dsa_ntt_init)
+static void ml_dsa_ntt_init(void)
 {
 #ifdef ML_DSA_NTT_ASM
     if (ml_dsa_ntt_avx2_capable()) {
         poly_ntt_impl = poly_ntt_avx2_wrapper;
         poly_ntt_inverse_impl = poly_ntt_inverse_avx2_wrapper;
         poly_ntt_mult_impl = poly_ntt_mult_avx2_wrapper;
-        return 1;
+        return;
     }
 #endif
     poly_ntt_impl = poly_ntt_scalar;
     poly_ntt_inverse_impl = poly_ntt_inverse_scalar;
     poly_ntt_mult_impl = poly_ntt_mult_scalar;
-    return 1;
 }
 
 /*
@@ -251,7 +251,7 @@ DEFINE_RUN_ONCE_STATIC(ml_dsa_ntt_init)
  */
 void ossl_ml_dsa_poly_ntt_mult(const POLY *lhs, const POLY *rhs, POLY *out)
 {
-    (void)RUN_ONCE(&ml_dsa_ntt_once, ml_dsa_ntt_init);
+    (void)CRYPTO_THREAD_run_once(&ml_dsa_ntt_once, ml_dsa_ntt_init);
     poly_ntt_mult_impl(lhs, rhs, out);
 }
 
@@ -266,7 +266,7 @@ void ossl_ml_dsa_poly_ntt_mult(const POLY *lhs, const POLY *rhs, POLY *out)
  */
 void ossl_ml_dsa_poly_ntt(POLY *p)
 {
-    (void)RUN_ONCE(&ml_dsa_ntt_once, ml_dsa_ntt_init);
+    (void)CRYPTO_THREAD_run_once(&ml_dsa_ntt_once, ml_dsa_ntt_init);
     poly_ntt_impl(p);
 }
 
@@ -279,6 +279,6 @@ void ossl_ml_dsa_poly_ntt(POLY *p)
  */
 void ossl_ml_dsa_poly_ntt_inverse(POLY *p)
 {
-    (void)RUN_ONCE(&ml_dsa_ntt_once, ml_dsa_ntt_init);
+    (void)CRYPTO_THREAD_run_once(&ml_dsa_ntt_once, ml_dsa_ntt_init);
     poly_ntt_inverse_impl(p);
 }
