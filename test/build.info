@@ -884,6 +884,9 @@ IF[{- !$disabled{tests} -}]
     IF[{- !$disabled{sm3} -}]
       PROGRAMS{noinst}=sm3_internal_test
     ENDIF
+    IF[{- !$disabled{sha3} && !$disabled{asm} && $target{asm_arch} eq "x86_64" -}]
+      PROGRAMS{noinst}=shake_x4_internal_test
+    ENDIF
     IF[{- !$disabled{sm4} -}]
       PROGRAMS{noinst}=sm4_internal_test
     ENDIF
@@ -1018,6 +1021,11 @@ IF[{- !$disabled{tests} -}]
     SOURCE[sm3_internal_test]=sm3_internal_test.c
     INCLUDE[sm3_internal_test]=../include ../apps/include
     DEPEND[sm3_internal_test]=../libcrypto.a libtestutil.a
+
+    SOURCE[shake_x4_internal_test]=shake_x4_internal_test.c
+    INCLUDE[shake_x4_internal_test]=.. ../include ../apps/include
+    DEFINE[shake_x4_internal_test]=KECCAK1600_ASM
+    DEPEND[shake_x4_internal_test]=../libcrypto.a libtestutil.a
 
     SOURCE[sm4_internal_test]=sm4_internal_test.c
     INCLUDE[sm4_internal_test]=.. ../include ../apps/include
