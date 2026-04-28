@@ -93,7 +93,7 @@ jobs:
           curl.exe -fL --connect-timeout 30 --max-time 300 --progress-bar -o sde-win.tar.xz $url
           $actual = (Get-FileHash sde-win.tar.xz -Algorithm SHA256).Hash
           if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
-          tar -xf sde-win.tar.xz
+          & "C:\Program Files\7-Zip\7z.exe" x sde-win.tar.xz -so | & "C:\Program Files\7-Zip\7z.exe" x -si -ttar
           $sde64 = Get-ChildItem -Recurse -Filter sde64.exe | Select-Object -First 1
           Write-Host "sde64 found at: $($sde64.FullName)"
           $sde64.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append
