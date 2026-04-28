@@ -203,7 +203,7 @@ static int rej_bounded_poly(EVP_MD_CTX *h_ctx, const EVP_MD *md,
  *            in the range of 0..q-1.
  * @returns 1 if the matrix was generated, or 0 on error.
  */
-int matrix_expand_A_scalar(EVP_MD_CTX *g_ctx, const EVP_MD *md,
+static int matrix_expand_A_scalar(EVP_MD_CTX *g_ctx, const EVP_MD *md,
     const uint8_t *rho, MATRIX *out)
 {
     int ret = 0;
@@ -245,7 +245,7 @@ err:
  *           the range (q-eta)..0..eta
  * @returns 1 if s1 and s2 were successfully generated, or 0 otherwise.
  */
-int vector_expand_S_scalar(EVP_MD_CTX *h_ctx, const EVP_MD *md, int eta,
+static int vector_expand_S_scalar(EVP_MD_CTX *h_ctx, const EVP_MD *md, int eta,
     const uint8_t *seed, VECTOR *s1, VECTOR *s2)
 {
     int ret = 0;
@@ -381,7 +381,7 @@ int ossl_ml_dsa_poly_sample_in_ball(POLY *out_c, const uint8_t *seed, int seed_l
     return 1;
 }
 
-void vector_expand_mask_scalar(VECTOR *out, const uint8_t *rho_prime,
+static void vector_expand_mask_scalar(VECTOR *out, const uint8_t *rho_prime,
     size_t rho_prime_len, uint32_t kappa, uint32_t gamma1,
     EVP_MD_CTX *h_ctx, const EVP_MD *md)
 {
@@ -410,7 +410,9 @@ static const OSSL_ML_DSA_SAMPLE_OPS ml_dsa_sample_generic_meth = {
 
 const OSSL_ML_DSA_SAMPLE_OPS *ossl_ml_dsa_sample_ops(void)
 {
-#if defined(KECCAK1600_ASM) && defined(__x86_64__) && !defined(OPENSSL_NO_ASM)
+#if defined(KECCAK1600_ASM)                                                               \
+    && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)) \
+    && !defined(OPENSSL_NO_ASM)
     return ossl_ml_dsa_sample_x86_64_ops();
 #else
     return ossl_ml_dsa_sample_generic_ops();
@@ -422,7 +424,9 @@ const OSSL_ML_DSA_SAMPLE_OPS *ossl_ml_dsa_sample_generic_ops(void)
     return &ml_dsa_sample_generic_meth;
 }
 
-#if defined(KECCAK1600_ASM) && defined(__x86_64__) && !defined(OPENSSL_NO_ASM)
+#if defined(KECCAK1600_ASM)                                                               \
+    && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)) \
+    && !defined(OPENSSL_NO_ASM)
 #include "ml_dsa_sample_hw_x86_64.inc"
 #else
 const OSSL_ML_DSA_SAMPLE_OPS *ossl_ml_dsa_sample_x86_64_ops(void)
