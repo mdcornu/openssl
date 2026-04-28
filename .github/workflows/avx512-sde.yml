@@ -39,13 +39,6 @@ jobs:
       - name: install NASM
         run: sudo apt-get install -y nasm
 
-      - name: config
-        run: |
-          ./config --banner=Configured --strict-warnings no-shared enable-fips
-
-      - name: build
-        run: make -j4
-
       - name: install Intel SDE
         run: |
           SDE_URL="https://downloadmirror.intel.com/${SDE_MIRROR_ID}/sde-external-${SDE_VERSION}-${SDE_DATE}-lin.tar.xz"
@@ -56,6 +49,13 @@ jobs:
           tar -xf /tmp/sde.tar.xz -C /tmp/sde/
           sudo mv /tmp/sde/sde-external-${SDE_VERSION}-${SDE_DATE}-lin /opt/sde
           echo "/opt/sde" >> "$GITHUB_PATH"
+
+      - name: config
+        run: |
+          ./config --banner=Configured --strict-warnings no-shared enable-fips
+
+      - name: build
+        run: make -j4
 
       - name: show CPU and OpenSSL build info
         run: |
@@ -85,6 +85,17 @@ jobs:
       - name: install JOM
         run: choco install jom
 
+      - name: install Intel SDE
+        run: |
+          $url = "https://downloadmirror.intel.com/$env:SDE_MIRROR_ID/sde-external-$env:SDE_VERSION-$env:SDE_DATE-win.zip"
+          $expected = "176F87C80EB42BB91B73E1428F4A0FD067DF322F901F9B4359B20B86B92C2BAE"
+          curl.exe -fsSL -o sde.zip $url
+          $actual = (Get-FileHash sde.zip -Algorithm SHA256).Hash
+          if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
+          Expand-Archive sde.zip -DestinationPath .
+          $sde64 = Get-ChildItem -Recurse -Filter sde64.exe | Select-Object -First 1
+          $sde64.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append
+
       - name: prepare build directory
         run: mkdir _build
 
@@ -102,17 +113,6 @@ jobs:
         run: |
           call "%VCVARS%"
           jom /j4 /S
-
-      - name: install Intel SDE
-        run: |
-          $url = "https://downloadmirror.intel.com/$env:SDE_MIRROR_ID/sde-external-$env:SDE_VERSION-$env:SDE_DATE-win.zip"
-          $expected = "176F87C80EB42BB91B73E1428F4A0FD067DF322F901F9B4359B20B86B92C2BAE"
-          Invoke-WebRequest -Uri $url -OutFile sde.zip
-          $actual = (Get-FileHash sde.zip -Algorithm SHA256).Hash
-          if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
-          Expand-Archive sde.zip -DestinationPath .
-          $sde64 = Get-ChildItem -Recurse -Filter sde64.exe | Select-Object -First 1
-          $sde64.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: show CPU and OpenSSL build info
         working-directory: _build
