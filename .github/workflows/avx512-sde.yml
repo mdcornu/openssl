@@ -117,9 +117,9 @@ jobs:
           call "%VCVARS%"
           jom /j4 /S
 
-      - name: show CPU and OpenSSL build info
-        working-directory: _build
-        run: sde -skx -- apps\openssl.exe version -c
+      # - name: show CPU and OpenSSL build info
+      #   working-directory: _build
+      #   run: sde -skx -- apps\openssl.exe version -c
 
       - name: ml_dsa_internal_test (AVX512VL via SDE)
         working-directory: _build
