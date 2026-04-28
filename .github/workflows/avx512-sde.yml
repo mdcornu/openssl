@@ -89,7 +89,10 @@ jobs:
         run: |
           $url = "https://downloadmirror.intel.com/$env:SDE_MIRROR_ID/sde-external-$env:SDE_VERSION-$env:SDE_DATE-win.zip"
           $expected = "176F87C80EB42BB91B73E1428F4A0FD067DF322F901F9B4359B20B86B92C2BAE"
-          curl.exe -fsSL -o sde.zip $url
+          curl.exe -fsSL `
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" `
+            -H "Referer: https://www.intel.com/content/www/us/en/download/684897/intel-software-development-emulator.html" `
+            -o sde.zip $url
           $actual = (Get-FileHash sde.zip -Algorithm SHA256).Hash
           if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
           Expand-Archive sde.zip -DestinationPath .
