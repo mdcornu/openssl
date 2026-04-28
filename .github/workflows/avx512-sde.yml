@@ -94,10 +94,11 @@ jobs:
           $actual = (Get-FileHash sde-win.tar.xz -Algorithm SHA256).Hash
           if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
           & "C:\Program Files\7-Zip\7z.exe" x sde-win.tar.xz -so | & "C:\Program Files\7-Zip\7z.exe" x -si -ttar
-          $sde = Get-ChildItem -Recurse -Filter sde.exe | Select-Object -First 1
-          if (-not $sde) { throw "sde.exe not found after extraction" }
+          $sdeRoot = Resolve-Path "sde-external-$env:SDE_VERSION-$env:SDE_DATE-win"
+          $sde = Get-Item "$sdeRoot\sde.exe" -ErrorAction SilentlyContinue
+          if (-not $sde) { throw "sde.exe not found in $sdeRoot" }
           Write-Host "sde found at: $($sde.FullName)"
-          $sde.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append
+          "$sdeRoot" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: prepare build directory
         run: mkdir _build
@@ -117,9 +118,9 @@ jobs:
           call "%VCVARS%"
           jom /j4 /S
 
-      # - name: show CPU and OpenSSL build info
-      #   working-directory: _build
-      #   run: sde -skx -- apps\openssl.exe version -c
+      - name: show CPU and OpenSSL build info
+        working-directory: _build
+        run: sde -skx -- apps\openssl.exe version -c
 
       - name: ml_dsa_internal_test (AVX512VL via SDE)
         working-directory: _build
