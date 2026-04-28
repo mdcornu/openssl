@@ -36,7 +36,7 @@ static ossl_unused int rej_ntt_poly_mb(EVP_MD_CTX *g_ctx, const EVP_MD *md,
     (void)md;
 
     for (lane = count; lane < ML_DSA_SHAKE_X4_BATCH_SIZE; lane++)
-        done_mask |= (1 << lane);
+        done_mask |= ((size_t)1 << lane);
 
     ossl_sha3_shake128_x4_inc_init(&ctx);
     ossl_sha3_shake128_x4_inc_absorb(&ctx, seeds[0], seeds[1],
@@ -48,7 +48,7 @@ static ossl_unused int rej_ntt_poly_mb(EVP_MD_CTX *g_ctx, const EVP_MD *md,
             blocks[2], blocks[3], SHAKE128_BLOCKSIZE, &ctx);
 
         for (lane = 0; lane < ML_DSA_SHAKE_X4_BATCH_SIZE; lane++) {
-            if (done_mask & (1 << lane))
+            if (done_mask & ((size_t)1 << lane))
                 continue;
 
             const uint8_t *b = blocks[lane];
@@ -62,7 +62,7 @@ static ossl_unused int rej_ntt_poly_mb(EVP_MD_CTX *g_ctx, const EVP_MD *md,
             }
 
             if (coeff_idx[lane] >= ML_DSA_NUM_POLY_COEFFICIENTS)
-                done_mask |= (1 << lane);
+                done_mask |= ((size_t)1 << lane);
         }
     }
 
@@ -145,7 +145,7 @@ static ossl_unused int rej_bounded_poly_mb(EVP_MD_CTX *h_ctx, const EVP_MD *md,
     (void)md;
 
     for (lane = count; lane < ML_DSA_SHAKE_X4_BATCH_SIZE; lane++)
-        done_mask |= (1 << lane);
+        done_mask |= ((size_t)1 << lane);
 
     ossl_sha3_shake256_x4_inc_init(&ctx);
     ossl_sha3_shake256_x4_inc_absorb(&ctx, seeds[0], seeds[1],
@@ -157,7 +157,7 @@ static ossl_unused int rej_bounded_poly_mb(EVP_MD_CTX *h_ctx, const EVP_MD *md,
             blocks[2], blocks[3], SHAKE256_BLOCKSIZE, &ctx);
 
         for (lane = 0; lane < ML_DSA_SHAKE_X4_BATCH_SIZE; lane++) {
-            if (done_mask & (1 << lane))
+            if (done_mask & ((size_t)1 << lane))
                 continue;
 
             const uint8_t *b = blocks[lane];
@@ -171,7 +171,7 @@ static ossl_unused int rej_bounded_poly_mb(EVP_MD_CTX *h_ctx, const EVP_MD *md,
                     coeff_idx[lane]++;
 
                 if (coeff_idx[lane] >= ML_DSA_NUM_POLY_COEFFICIENTS) {
-                    done_mask |= (1 << lane);
+                    done_mask |= ((size_t)1 << lane);
                     break;
                 }
 
@@ -179,7 +179,7 @@ static ossl_unused int rej_bounded_poly_mb(EVP_MD_CTX *h_ctx, const EVP_MD *md,
                     coeff_idx[lane]++;
 
                 if (coeff_idx[lane] >= ML_DSA_NUM_POLY_COEFFICIENTS) {
-                    done_mask |= (1 << lane);
+                    done_mask |= ((size_t)1 << lane);
                     break;
                 }
             }
