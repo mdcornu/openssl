@@ -89,14 +89,20 @@ jobs:
         run: |
           $url = "https://downloadmirror.intel.com/$env:SDE_MIRROR_ID/sde-external-$env:SDE_VERSION-$env:SDE_DATE-win.zip"
           $expected = "176F87C80EB42BB91B73E1428F4A0FD067DF322F901F9B4359B20B86B92C2BAE"
-          curl.exe -fsSL `
+          Write-Host "SDE_VERSION=$env:SDE_VERSION SDE_DATE=$env:SDE_DATE SDE_MIRROR_ID=$env:SDE_MIRROR_ID"
+          Write-Host "Downloading: $url"
+          curl.exe -vL `
             -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" `
             -H "Referer: https://www.intel.com/content/www/us/en/download/684897/intel-software-development-emulator.html" `
             -o sde.zip $url
+          Write-Host "Download complete, verifying SHA256..."
           $actual = (Get-FileHash sde.zip -Algorithm SHA256).Hash
+          Write-Host "Expected: $expected"
+          Write-Host "Actual:   $actual"
           if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
           Expand-Archive sde.zip -DestinationPath .
           $sde64 = Get-ChildItem -Recurse -Filter sde64.exe | Select-Object -First 1
+          Write-Host "sde64 found at: $($sde64.FullName)"
           $sde64.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: prepare build directory
