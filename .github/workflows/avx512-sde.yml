@@ -68,6 +68,9 @@ jobs:
       - name: sha3_x4_internal_test (AVX512VL via SDE)
         run: sde64 -skx -- ./test/sha3_x4_internal_test
 
+      - name: fipsinstall (FIPS KAT via SDE)
+        run: sde64 -skx -- ./apps/openssl fipsinstall -module ./providers/fips.so -out /tmp/fipsmodule.cnf -provider_name fips
+
   windows:
     runs-on: windows-2022
     env:
@@ -127,3 +130,8 @@ jobs:
         working-directory: _build
         shell: cmd
         run: sde -skx -- test\sha3_x4_internal_test.exe
+
+      - name: fipsinstall (FIPS KAT via SDE)
+        working-directory: _build
+        shell: cmd
+        run: sde -skx -- apps\openssl.exe fipsinstall -module providers\fips.dll -out fipsmodule.cnf -provider_name fips
