@@ -89,15 +89,12 @@ jobs:
         run: |
           $url = "https://downloadmirror.intel.com/$env:SDE_MIRROR_ID/sde-external-$env:SDE_VERSION-$env:SDE_DATE-win.tar.xz"
           $expected = "176F87C80EB42BB91B73E1428F4A0FD067DF322F901F9B4359B20B86B92C2BAE"
-          Write-Host "Downloading: $url"
-          curl.exe -fL --connect-timeout 30 --max-time 300 --progress-bar -o sde-win.tar.xz $url
+          curl.exe -fsSL -o sde-win.tar.xz $url
           $actual = (Get-FileHash sde-win.tar.xz -Algorithm SHA256).Hash
           if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
-          & "C:\Program Files\7-Zip\7z.exe" x sde-win.tar.xz -so | & "C:\Program Files\7-Zip\7z.exe" x -si -ttar -o"C:\sde"
+          & "C:\Program Files\7-Zip\7z.exe" x sde-win.tar.xz -so | & "C:\Program Files\7-Zip\7z.exe" x -si -ttar -o "C:\sde"
           $sdeRoot = "C:\sde\sde-external-$env:SDE_VERSION-$env:SDE_DATE-win"
-          $sde = Get-Item "$sdeRoot\sde.exe" -ErrorAction SilentlyContinue
-          if (-not $sde) { throw "sde.exe not found in $sdeRoot" }
-          Write-Host "sde found at: $($sde.FullName)"
+          if (-not (Test-Path "$sdeRoot\sde.exe")) { throw "sde.exe not found in $sdeRoot" }
           "$sdeRoot" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: prepare build directory
@@ -109,7 +106,6 @@ jobs:
         run: |
           call "%VCVARS%"
           perl ..\Configure --banner=Configured --strict-warnings no-shared enable-fips no-makedepend
-          perl configdata.pm --dump
 
       - name: build
         working-directory: _build
