@@ -95,7 +95,7 @@ jobs:
           curl.exe -fsSL -o sde-win.tar.xz $url
           $actual = (Get-FileHash sde-win.tar.xz -Algorithm SHA256).Hash
           if ($actual -ne $expected) { throw "SDE SHA256 mismatch: got $actual" }
-          & "C:\Program Files\7-Zip\7z.exe" x sde-win.tar.xz -so | & "C:\Program Files\7-Zip\7z.exe" x -si -ttar -o "C:\sde"
+          & "C:\Program Files\7-Zip\7z.exe" x sde-win.tar.xz -so | & "C:\Program Files\7-Zip\7z.exe" x -si -ttar -o"C:\sde"
           $sdeRoot = "C:\sde\sde-external-$env:SDE_VERSION-$env:SDE_DATE-win"
           if (-not (Test-Path "$sdeRoot\sde.exe")) { throw "sde.exe not found in $sdeRoot" }
           "$sdeRoot" | Out-File -FilePath $env:GITHUB_PATH -Append
